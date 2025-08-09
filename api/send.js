@@ -1,3 +1,5 @@
+// api/send.js (Vercel, Node 18+)
+// npm install pusher
 import Pusher from "pusher";
 
 const pusher = new Pusher({
@@ -5,15 +7,17 @@ const pusher = new Pusher({
   key: "570abd9dffaf960c32a8",
   secret: "5b82b2ad98ecbaa79f9a",
   cluster: "eu",
-  useTLS: true
+  useTLS: true,
 });
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).send({ message: "Method not allowed" });
-  }
-
+  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
   const { channel, event, data } = req.body;
-  await pusher.trigger(channel, event, data);
-  res.status(200).send({ message: "Event sent" });
+  try {
+    await pusher.trigger(channel, event, data);
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "pusher error" });
+  }
 }
