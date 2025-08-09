@@ -1,5 +1,4 @@
-// api/send.js (Vercel, Node 18+)
-// npm install pusher
+// api/send.js
 import Pusher from "pusher";
 
 const pusher = new Pusher({
@@ -11,8 +10,22 @@ const pusher = new Pusher({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Handle preflight request
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   const { channel, event, data } = req.body;
+
   try {
     await pusher.trigger(channel, event, data);
     return res.status(200).json({ ok: true });
